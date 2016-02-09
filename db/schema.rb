@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160119230937) do
+ActiveRecord::Schema.define(version: 20160209170316) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -163,16 +163,18 @@ ActiveRecord::Schema.define(version: 20160119230937) do
     t.string   "status",           default: "open"
     t.string   "post_type",        default: "task"
     t.string   "title",                             null: false
-    t.text     "body",                              null: false
+    t.text     "body"
     t.integer  "user_id",                           null: false
     t.integer  "project_id",                        null: false
     t.datetime "created_at",                        null: false
     t.datetime "updated_at",                        null: false
     t.integer  "post_likes_count", default: 0
-    t.text     "markdown",                          null: false
+    t.text     "markdown"
     t.integer  "number"
     t.string   "aasm_state"
     t.integer  "comments_count",   default: 0
+    t.text     "body_preview"
+    t.text     "markdown_preview"
   end
 
   create_table "projects", force: :cascade do |t|

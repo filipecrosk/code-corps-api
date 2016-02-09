@@ -17,15 +17,17 @@
 #  aasm_state       :string
 #
 
-require 'rails_helper'
+require "rails_helper"
 
-describe Post, :type => :model do
+describe Post, type: :model do
   describe "schema" do
     it { should have_db_column(:status).of_type(:string) }
     it { should have_db_column(:post_type).of_type(:string) }
     it { should have_db_column(:title).of_type(:string).with_options(null: false) }
-    it { should have_db_column(:body).of_type(:text).with_options(null: false) }
-    it { should have_db_column(:markdown).of_type(:text).with_options(null: false) }
+    it { should have_db_column(:body).of_type(:text).with_options(null: true) }
+    it { should have_db_column(:markdown).of_type(:text).with_options(null: true) }
+    it { should have_db_column(:body_preview).of_type(:text).with_options(null: true) }
+    it { should have_db_column(:markdown_preview).of_type(:text).with_options(null: true) }
     it { should have_db_column(:project_id).of_type(:integer).with_options(null: false) }
     it { should have_db_column(:user_id).of_type(:integer).with_options(null: false) }
     it { should have_db_column(:updated_at) }
@@ -48,13 +50,60 @@ describe Post, :type => :model do
     it { should validate_presence_of(:user) }
     it { should validate_presence_of(:project) }
     it { should validate_presence_of(:title) }
-    it { should validate_presence_of(:body) }
-    it { should validate_presence_of(:markdown) }
+
     it { should validate_presence_of(:post_type) }
 
     context "number" do
       let(:subject) { create(:post) }
       it { should validate_uniqueness_of(:number).scoped_to(:project_id).allow_nil }
+    end
+
+    context "body" do
+      context "when body_preview has a value" do
+        let(:subject) { build(:post, body_preview: "Something") }
+        it { should_not validate_presence_of(:body) }
+      end
+
+      context "when body_preview has no value" do
+        let(:subject) { build(:post, body_preview: nil) }
+        it { should validate_presence_of(:body) }
+      end
+    end
+
+    context "body_preview" do
+      context "when body has a value" do
+        let(:subject) { build(:post, body: "Something") }
+        it { should_not validate_presence_of(:body_preview) }
+      end
+
+      context "when body has no value" do
+        let(:subject) { build(:post, body: nil) }
+        it { should validate_presence_of(:body_preview) }
+      end
+    end
+
+    context "markdown" do
+      context "when markdown_preview has a value" do
+        let(:subject) { build(:post, markdown_preview: "Something") }
+        it { should_not validate_presence_of(:markdown) }
+      end
+
+      context "when markdown_preview has no value" do
+        let(:subject) { build(:post, markdown_preview: nil) }
+        it { should validate_presence_of(:markdown) }
+      end
+    end
+
+    context "markdown_preview" do
+      context "when markdown has a value" do
+        let(:subject) { build(:post, markdown: "Something") }
+        it { should_not validate_presence_of(:markdown_preview) }
+      end
+
+      context "when markdown has no value" do
+        let(:subject) { build(:post, markdown: nil) }
+        it { should validate_presence_of(:markdown_preview) }
+      end
     end
   end
 

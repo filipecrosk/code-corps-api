@@ -36,8 +36,13 @@ class Post < ActiveRecord::Base
   validates_presence_of :project
   validates_presence_of :user
   validates_presence_of :title
-  validates_presence_of :body
-  validates_presence_of :markdown
+
+  validates :body, presence: true, unless: :body_preview
+  validates :body_preview, presence: true, unless: :body
+
+  validates :markdown, presence: true, unless: :markdown_preview
+  validates :markdown_preview, presence: true, unless: :markdown
+
   validates_presence_of :post_type
 
   validates_uniqueness_of :number, scope: :project_id, allow_nil: true
