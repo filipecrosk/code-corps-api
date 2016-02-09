@@ -356,4 +356,86 @@ describe "Comments API" do
       end
     end
   end
+
+  context "POST /comments" do
+    context "when unauthenticated" do
+      it "responds with a proper 401" do
+        post "#{host}/comments"
+        expect(last_response.status).to eq 401
+        expect(json).to be_a_valid_json_api_error.with_id "NOT_AUTHORIZED"
+      end
+    end
+
+    context "when authenticated" do
+      let(:user) { create :user, password: "password" }
+      let(:organization) { create :organization }
+      let(:project) { create :project, organization: organization }
+      let(:post) { create :post, project: project, user: user }
+      let(:token) { authenticate email: user.email, password: "password" }
+
+      before do
+        create(
+          :organization_membership,
+          member: user, organization: organization, role: "contributor")
+      end
+
+      context "when requesting a preview" do
+        it "creates a draft with _preview fields present, actual fields empty"
+      end
+
+      context "when requesting an actual save" do
+        it "creates a published comment with all fields present"
+      end
+    end
+  end
+
+  context "PATCH /comments/:id" do
+    let(:user) { create :user, password: "password" }
+    let(:organization) { create :organization }
+    let(:project) { create :project, organization: organization }
+    let(:post) { create :post, user: user, project: project, state: :published }
+    let(:comment) { create :comment, user: user, post: post, state: :draft }
+
+    context "when unauthenticated" do
+      it "responds with a proper 401" do
+        patch "#{host}/comments/#{comment.id}"
+        expect(last_response.status).to eq 401
+        expect(json).to be_a_valid_json_api_error.with_id "NOT_AUTHORIZED"
+      end
+    end
+
+    context "when authenticated" do
+      let(:token) { authenticate email: user.email, password: "password" }
+
+      before do
+        create(
+          :organization_membership,
+          member: user, organization: organization, role: "contributor")
+      end
+
+      context "when comment is a draft" do
+        context "when requesting a preview" do
+          it "updates _preview fields, doesn't touch actual fields"
+        end
+
+        context "when requesting an actual save" do
+          it "updates all fields, sets state to :published"
+        end
+      end
+
+      context "when comment is published" do
+        before do
+          comment.publish!
+        end
+
+        context "when requesting a preview" do
+          it "updates _preview fields, doesn't touch actual fields"
+        end
+
+        context "when requesting an actual save" do
+          it "updates all fields"
+        end
+      end
+    end
+  end
 end

@@ -1,7 +1,6 @@
 require "rails_helper"
 
 describe "Posts API" do
-
   context "GET /projects/:id/posts" do
     context "when the project doesn't exist" do
       it "responds with a 404" do
@@ -148,7 +147,6 @@ describe "Posts API" do
   end
 
   context "POST /posts" do
-
     context "when unauthenticated" do
       it "should return a 401 with a proper error" do
         post "#{host}/posts", { data: { type: "posts" } }
@@ -354,21 +352,24 @@ describe "Posts API" do
           @post = create(:post, project: @project, user: @user)
           @mentioned_1 = create(:user)
           @mentioned_2 = create(:user)
-          @params = { data: {
-            attributes: { title: "Edited title", markdown: "@#{@mentioned_1.username} @#{@mentioned_2.username}" },
-            relationships: { project: { data: { id: @project.id, type: "projects" } } }
-          } }
-        end
-
-        def make_request
-          authenticated_patch "/posts/#{@post.id}", @params, @token
-        end
-
-        def make_request_with_sidekiq_inline
-          Sidekiq::Testing::inline! { make_request }
         end
 
         context "when the attributes are valid" do
+          before do
+            @params = { data: {
+              attributes: { title: "Edited title", markdown: "@#{@mentioned_1.username} @#{@mentioned_2.username}" },
+              relationships: { project: { data: { id: @project.id, type: "projects" } } }
+            } }
+          end
+
+          def make_request
+            authenticated_patch "/posts/#{@post.id}", @params, @token
+          end
+
+          def make_request_with_sidekiq_inline
+            Sidekiq::Testing::inline! { make_request }
+          end
+
           context "when updating a draft" do
             it "responds with a 200" do
               make_request
@@ -449,6 +450,86 @@ describe "Posts API" do
             expect(last_response.status).to eq 422
             expect(json).to be_a_valid_json_api_validation_error
           end
+        end
+      end
+    end
+  end
+
+  context "POST /posts" do
+    context "when unauthenticated" do
+      it "responds with a proper 401" do
+        post "#{host}/posts", data: { type: "posts" }
+        expect(last_response.status).to eq 401
+        expect(json).to be_a_valid_json_api_error.with_id "NOT_AUTHORIZED"
+      end
+    end
+
+    context "when authenticated" do
+      let(:user) { create :user, password: "password" }
+      let(:organization) { create :organization }
+      let(:project) { create :project, organization: organization }
+      let(:token) { authenticate email: user.email, password: "password" }
+
+      before do
+        create(
+          :organization_membership,
+          member: user, organization: organization, role: "contributor")
+      end
+
+      context "when requesting a preview" do
+        it "creates a draft with _preview fields present, actual fields empty"
+      end
+
+      context "when requesting an actual save" do
+        it "creates a published post with all fields present"
+      end
+    end
+  end
+
+  context "PATCH /posts/:id" do
+    let(:user) { create :user, password: "password" }
+    let(:organization) { create :organization }
+    let(:project) { create :project, organization: organization }
+    let(:post) { create :post, user: user, project: project, state: :draft }
+
+    context "when unauthenticated" do
+      it "responds with a proper 401" do
+        patch "#{host}/posts/#{post.id}"
+        expect(last_response.status).to eq 401
+        expect(json).to be_a_valid_json_api_error.with_id "NOT_AUTHORIZED"
+      end
+    end
+
+    context "when authenticated" do
+      let(:token) { authenticate email: user.email, password: "password" }
+
+      before do
+        create(
+          :organization_membership,
+          member: user, organization: organization, role: "contributor")
+      end
+
+      context "when post is a draft" do
+        context "when requesting a preview" do
+          it "updates _preview fields, doesn't touch actual fields or number"
+        end
+
+        context "when requesting an actual save" do
+          it "updates all fields, including number"
+        end
+      end
+
+      context "when post is published" do
+        before do
+          post.publish!
+        end
+
+        context "when requesting a preview" do
+          it "updates _preview fields, doesn't touch actual fields or number"
+        end
+
+        context "when requesting an actual save" do
+          it "updates all fields, except number"
         end
       end
     end
