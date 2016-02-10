@@ -21,22 +21,41 @@ FactoryGirl.define do
 
   factory :post do
     sequence(:title) { |n| "Post #{n}" }
-    sequence(:markdown) { |n| "Post markdown #{n}" }
+    sequence(:markdown) { |n| "Post content #{n}" }
+    sequence(:markdown_preview) { |n| "Post content #{n}" }
 
     association :user
     association :project
 
-    transient do
-      mention_count 5
+    trait :draft do
+      aasm_state :draft
+      markdown nil
+      body nil
+      markdown_preview "Post content"
+      body_preview "Post content"
     end
 
     trait :published do
-      after :create do |post, evaluator|
-        post.publish!
-      end
+      aasm_state :published
+      markdown "Post content"
+      body "Post content"
+      markdown_preview "Post content"
+      body_preview "Post content"
+    end
+
+    trait :edited do
+      aasm_state :edited
+      markdown "Post content"
+      body "Post content"
+      markdown_preview "Post content"
+      body_preview "Post content"
     end
 
     trait :with_user_mentions do
+      transient do
+        mention_count 5
+      end
+
       after :create do |post, evaluator|
         create_list(:post_user_mention, evaluator.mention_count, post: post)
       end

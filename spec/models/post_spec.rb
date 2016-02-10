@@ -58,29 +58,8 @@ describe Post, type: :model do
       it { should validate_uniqueness_of(:number).scoped_to(:project_id).allow_nil }
     end
 
-    context "body" do
-      context "when body_preview has a value" do
-        let(:subject) { build(:post, body_preview: "Something") }
-        it { should_not validate_presence_of(:body) }
-      end
-
-      context "when body_preview has no value" do
-        let(:subject) { build(:post, body_preview: nil) }
-        it { should validate_presence_of(:body) }
-      end
-    end
-
-    context "body_preview" do
-      context "when body has a value" do
-        let(:subject) { build(:post, body: "Something") }
-        it { should_not validate_presence_of(:body_preview) }
-      end
-
-      context "when body has no value" do
-        let(:subject) { build(:post, body: nil) }
-        it { should validate_presence_of(:body_preview) }
-      end
-    end
+    # no sense in testing body or body_preview validations, since the markdown
+    # rendering hook will ensure at least body_preview is always present
 
     context "markdown" do
       context "when markdown_preview has a value" do
@@ -157,12 +136,12 @@ describe Post, type: :model do
   end
 
   describe "before_validation" do
-    it "converts markdown to html for the body" do
-      post = create(:post, markdown: "# Hello World\n\nHello, world.")
+    it "converts markdown_preview to html for body_preview" do
+      post = create(:post, markdown_preview: "# Hello World\n\nHello, world.")
       post.save
 
       post.reload
-      expect(post.body).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
+      expect(post.body_preview).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
     end
   end
 
@@ -210,41 +189,74 @@ describe Post, type: :model do
     end
   end
 
-  describe "#update!" do
-    context "when aasm_state_was 'published'" do
-      context "when the model has changed" do
-        it "should be edited" do
-          post = create(:post)
-          post.publish!
+  describe "#update" do
+    context "when previewing" do
+      it "should just save a draft post" do
+        post = create(:post, :draft)
+        post.update(false)
 
-          post.markdown = "New markdown"
-          post.update!
-
-          expect(post).to be_edited
-        end
+        expect(post.draft?).to be true
+        expect(post.markdown_preview).not_to be_nil
+        expect(post.body_preview).not_to be_nil
+        expect(post.markdown).to be_nil
+        expect(post.body).to be_nil
       end
 
-      context "when the model has not changed" do
-        it "should still be published" do
-          post = create(:post)
-          post.publish!
+      it "should just save a published post" do
+        post = create(:post, :published)
+        post.update(false)
 
-          post.update!
+        expect(post.published?).to be true
+        expect(post.markdown_preview).not_to be_nil
+        expect(post.body_preview).not_to be_nil
+        expect(post.markdown).not_to be_nil
+        expect(post.body).not_to be_nil
+      end
 
-          expect(post).to be_published
-        end
+      it "should just save an edited post" do
+        post = create(:post, :edited)
+        post.update(false)
+
+        expect(post.edited?).to be true
+        expect(post.markdown_preview).not_to be_nil
+        expect(post.body_preview).not_to be_nil
+        expect(post.markdown).not_to be_nil
+        expect(post.body).not_to be_nil
       end
     end
 
-    context "when in draft state" do
-      it "should still be draft but saved" do
-        post = create(:post)
-        old_updated_at = post.updated_at
-        post.markdown = "New text"
-        post.update!
+    context "when publishing" do
+      it "publishes a draft post" do
+        post = create(:post, :draft)
+        post.update(true)
 
-        expect(post).to be_draft
-        expect(post.updated_at).not_to eq old_updated_at
+        expect(post.published?).to be true
+        expect(post.markdown_preview).not_to be_nil
+        expect(post.body_preview).not_to be_nil
+        expect(post.markdown).not_to be_nil
+        expect(post.body).not_to be_nil
+      end
+
+      it "just saves a published post, sets it to edited state" do
+        post = create(:post, :published)
+        post.update(true)
+
+        expect(post.edited?).to be true
+        expect(post.markdown_preview).not_to be_nil
+        expect(post.body_preview).not_to be_nil
+        expect(post.markdown).not_to be_nil
+        expect(post.body).not_to be_nil
+      end
+
+      it "just saves an edited post" do
+        post = create(:post, :edited)
+        post.update(true)
+
+        expect(post.edited?).to be true
+        expect(post.markdown_preview).not_to be_nil
+        expect(post.body_preview).not_to be_nil
+        expect(post.markdown).not_to be_nil
+        expect(post.body).not_to be_nil
       end
     end
   end
@@ -276,7 +288,7 @@ describe Post, type: :model do
         post = Post.create(
           project: create(:project),
           user: create(:user),
-          markdown: "Hello @joshsmith and @someone_who_doesnt_exist",
+          markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist",
           title: "Test"
         )
 
@@ -294,7 +306,7 @@ describe Post, type: :model do
           post = Post.create(
             project: create(:project),
             user: create(:user),
-            markdown: "Hello @a_real_username and @not_a_real_username",
+            markdown_preview: "Hello @a_real_username and @not_a_real_username",
             title: "Test"
           )
 

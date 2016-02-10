@@ -38,8 +38,8 @@ class PostsController < ApplicationController
 
     authorize post
 
-    if post.update!
-      GeneratePostUserNotificationsWorker.perform_async(post.id) if post.published?
+    if post.update publish?
+      GeneratePostUserNotificationsWorker.perform_async(post.id) if publish?
       render json: post
     else
       render_validation_errors post.errors
@@ -48,12 +48,13 @@ class PostsController < ApplicationController
 
   def update
     post = Post.find(params[:id])
+
     authorize post
 
     post.assign_attributes(update_params)
 
-    if post.update!
-      GeneratePostUserNotificationsWorker.perform_async(post.id) if post.edited?
+    if post.update publish?
+      GeneratePostUserNotificationsWorker.perform_async(post.id) if publish?
       render json: post
     else
       render_validation_errors post.errors
@@ -62,12 +63,16 @@ class PostsController < ApplicationController
 
   private
 
+    def publish?
+      record_attributes.fetch(:publish, false)
+    end
+
     def update_params
-      record_attributes.permit(:markdown, :title, :state)
+      record_attributes.permit(:markdown_preview, :title)
     end
 
     def create_params
-      record_attributes.permit(:markdown, :title, :state, :post_type).merge(relationships)
+      record_attributes.permit(:markdown_preview, :title, :post_type).merge(relationships)
     end
 
     def filter_params
