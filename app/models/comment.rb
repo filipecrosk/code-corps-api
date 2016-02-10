@@ -23,8 +23,10 @@ class Comment < ActiveRecord::Base
 
   has_many :comment_user_mentions
 
-  validates_presence_of :body
-  validates_presence_of :markdown
+  validates :body, presence: true, unless: :body_preview
+  validates :body_preview, presence: true, unless: :body
+  validates :markdown, presence: true, unless: :markdown_preview
+  validates :markdown_preview, presence: true, unless: :markdown
   validates_presence_of :user
   validates_presence_of :post
 
@@ -46,12 +48,10 @@ class Comment < ActiveRecord::Base
     end
   end
 
-  def update!
-    if aasm_state_was == "published" && self.changed?
-      self.edit!
-    else
-      self.save
-    end
+  def update(publish)
+    success = save
+    success = publish_changes if publish
+    success
   end
 
   def state
@@ -73,9 +73,18 @@ class Comment < ActiveRecord::Base
     end
 
     def render_markdown_to_body
-      if markdown.present?
-        html = pipeline.call(markdown)
-        self.body = html[:output].to_s
+      if markdown_preview.present?
+        html = pipeline.call(markdown_preview)
+        self.body_preview = html[:output].to_s
+      end
+    end
+    def publish_changes
+      self.assign_attributes markdown: markdown_preview, body: body_preview
+
+      if aasm_state_was == "draft"
+        publish!
+      elsif aasm_state_was == "published"
+        edit!
       end
     end
 

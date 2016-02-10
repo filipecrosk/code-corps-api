@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160209170316) do
+ActiveRecord::Schema.define(version: 20160210140342) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -41,13 +41,15 @@ ActiveRecord::Schema.define(version: 20160209170316) do
   end
 
   create_table "comments", force: :cascade do |t|
-    t.text     "body",       null: false
-    t.integer  "user_id",    null: false
-    t.integer  "post_id",    null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.text     "markdown",   null: false
+    t.text     "body"
+    t.integer  "user_id",          null: false
+    t.integer  "post_id",          null: false
+    t.datetime "created_at",       null: false
+    t.datetime "updated_at",       null: false
+    t.text     "markdown"
     t.string   "aasm_state"
+    t.text     "body_preview"
+    t.text     "markdown_preview"
   end
 
   create_table "github_repositories", force: :cascade do |t|

@@ -16,8 +16,10 @@ require 'rails_helper'
 
 describe Comment, :type => :model do
   describe "schema" do
-    it { should have_db_column(:body).of_type(:text).with_options(null: false) }
-    it { should have_db_column(:markdown).of_type(:text).with_options(null: false) }
+    it { should have_db_column(:body).of_type(:text).with_options(null: true) }
+    it { should have_db_column(:markdown).of_type(:text).with_options(null: true) }
+    it { should have_db_column(:body_preview).of_type(:text).with_options(null: true) }
+    it { should have_db_column(:markdown_preview).of_type(:text).with_options(null: true) }
     it { should have_db_column(:post_id).of_type(:integer) }
     it { should have_db_column(:user_id).of_type(:integer) }
     it { should have_db_column(:updated_at) }
@@ -38,12 +40,12 @@ describe Comment, :type => :model do
   end
 
   describe "before_validation" do
-    it "converts markdown to html for the body" do
-      comment = create(:comment, markdown: "# Hello World\n\nHello, world.")
+    it "converts markdown_preview to html to body_preview" do
+      comment = create(:comment, markdown_preview: "# Hello World\n\nHello, world.")
       comment.save
 
       comment.reload
-      expect(comment.body).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
+      expect(comment.body_preview).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
     end
   end
 
@@ -85,41 +87,74 @@ describe Comment, :type => :model do
     end
   end
 
-  describe ".update!" do
-    context "when aasm_state_was 'published'" do
-      context "when the model has changed" do
-        it "should be edited" do
-          comment = create(:comment)
-          comment.publish!
+  describe "#update" do
+    context "when previewing" do
+      it "should just save a draft comment" do
+        comment = create(:comment, :draft)
+        comment.update(false)
 
-          comment.markdown = "New markdown"
-          comment.update!
-
-          expect(comment).to be_edited
-        end
+        expect(comment.draft?).to be true
+        expect(comment.markdown_preview).not_to be_nil
+        expect(comment.body_preview).not_to be_nil
+        expect(comment.markdown).to be_nil
+        expect(comment.body).to be_nil
       end
 
-      context "when the model has not changed" do
-        it "should still be published" do
-          comment = create(:comment)
-          comment.publish!
+      it "should just save a published comment" do
+        comment = create(:comment, :published)
+        comment.update(false)
 
-          comment.update!
+        expect(comment.published?).to be true
+        expect(comment.markdown_preview).not_to be_nil
+        expect(comment.body_preview).not_to be_nil
+        expect(comment.markdown).not_to be_nil
+        expect(comment.body).not_to be_nil
+      end
 
-          expect(comment).to be_published
-        end
+      it "should just save an edited comment" do
+        comment = create(:comment, :edited)
+        comment.update(false)
+
+        expect(comment.edited?).to be true
+        expect(comment.markdown_preview).not_to be_nil
+        expect(comment.body_preview).not_to be_nil
+        expect(comment.markdown).not_to be_nil
+        expect(comment.body).not_to be_nil
       end
     end
 
-    context "when in draft state" do
-      it "should still be draft but saved" do
-        comment = create(:comment)
-        old_updated_at = comment.updated_at
-        comment.markdown = "New text"
-        comment.update!
+    context "when publishing" do
+      it "publishes a draft comment" do
+        comment = create(:comment, :draft)
+        comment.update(true)
 
-        expect(comment).to be_draft
-        expect(comment.updated_at).not_to eq old_updated_at
+        expect(comment.published?).to be true
+        expect(comment.markdown_preview).not_to be_nil
+        expect(comment.body_preview).not_to be_nil
+        expect(comment.markdown).not_to be_nil
+        expect(comment.body).not_to be_nil
+      end
+
+      it "just saves a published comment, sets it to edited state" do
+        comment = create(:comment, :published)
+        comment.update(true)
+
+        expect(comment.edited?).to be true
+        expect(comment.markdown_preview).not_to be_nil
+        expect(comment.body_preview).not_to be_nil
+        expect(comment.markdown).not_to be_nil
+        expect(comment.body).not_to be_nil
+      end
+
+      it "just saves an edited comment" do
+        comment = create(:comment, :edited)
+        comment.update(true)
+
+        expect(comment.edited?).to be true
+        expect(comment.markdown_preview).not_to be_nil
+        expect(comment.body_preview).not_to be_nil
+        expect(comment.markdown).not_to be_nil
+        expect(comment.body).not_to be_nil
       end
     end
   end
@@ -143,7 +178,7 @@ describe Comment, :type => :model do
         comment = Comment.create(
           post: create(:post),
           user: create(:user),
-          markdown: "Hello @joshsmith and @someone_who_doesnt_exist"
+          markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist"
         )
 
         comment.reload
@@ -160,7 +195,7 @@ describe Comment, :type => :model do
           comment = Comment.create(
             post: create(:post),
             user: create(:user),
-            markdown: "Hello @a_real_username and @not_a_real_username"
+            markdown_preview: "Hello @a_real_username and @not_a_real_username"
           )
 
           comment.reload
