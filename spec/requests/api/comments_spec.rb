@@ -53,7 +53,7 @@ describe "Comments API" do
 
     context "when authenticated" do
       let(:user) { create :user, password: "password" }
-      let(:post) { create :post, user: user }
+      let(:users_post) { create :post, user: user }
       let(:token) { authenticate email: user.email, password: "password" }
 
       let(:mentioned_1) { create(:user) }
@@ -75,7 +75,7 @@ describe "Comments API" do
               markdown_preview: "@#{mentioned_1.username} @#{mentioned_2.username}"
             },
             relationships: {
-              post: { data: { id: post.id, type: "posts" } }
+              post: { data: { id: users_post.id, type: "posts" } }
             }
           }
         }
@@ -106,7 +106,7 @@ describe "Comments API" do
 
           # relationships are properly set
           expect(comment.user_id).to eq user.id
-          expect(comment.post_id).to eq post.id
+          expect(comment.post_id).to eq users_post.id
 
           # correct number of mentions was generated
           expect(CommentUserMention.count).to eq 2
@@ -140,7 +140,7 @@ describe "Comments API" do
 
           # relationships are properly set
           expect(comment.user_id).to eq user.id
-          expect(comment.post_id).to eq post.id
+          expect(comment.post_id).to eq users_post.id
 
           # a mention was generated for each mentioned user
           expect(CommentUserMention.count).to eq 2
@@ -161,7 +161,7 @@ describe "Comments API" do
                 title: "", markdown_preview: ""
               },
               relationships: {
-                post: { data: { id: post.id, type: "posts" } }
+                post: { data: { id: users_post.id, type: "posts" } }
               }
             }
           }
