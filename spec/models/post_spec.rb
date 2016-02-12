@@ -23,7 +23,7 @@ describe Post, type: :model do
   describe "schema" do
     it { should have_db_column(:status).of_type(:string) }
     it { should have_db_column(:post_type).of_type(:string) }
-    it { should have_db_column(:title).of_type(:string).with_options(null: false) }
+    it { should have_db_column(:title).of_type(:string).with_options(null: true) }
     it { should have_db_column(:body).of_type(:text).with_options(null: true) }
     it { should have_db_column(:markdown).of_type(:text).with_options(null: true) }
     it { should have_db_column(:body_preview).of_type(:text).with_options(null: true) }
@@ -49,7 +49,23 @@ describe Post, type: :model do
   describe "validations" do
     it { should validate_presence_of(:user) }
     it { should validate_presence_of(:project) }
-    it { should validate_presence_of(:title) }
+
+    context "title" do
+      context "when post is a draft" do
+        let(:subject) { create(:post, :draft) }
+        it { should_not validate_presence_of(:title) }
+      end
+
+      context "when the post is published" do
+        let(:subject) { create(:post, :published) }
+        it { should validate_presence_of(:title) }
+      end
+
+      context "when the post is edited" do
+        let(:subject) { create(:post, :edited) }
+        it { should validate_presence_of(:title) }
+      end
+    end
 
     it { should validate_presence_of(:post_type) }
 

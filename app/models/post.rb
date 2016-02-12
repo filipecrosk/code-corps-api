@@ -35,7 +35,7 @@ class Post < ActiveRecord::Base
 
   validates_presence_of :project
   validates_presence_of :user
-  validates_presence_of :title
+  validates :title, presence: true, unless: :draft?
 
   validates :body, presence: true, unless: :body_preview
   validates :body_preview, presence: true, unless: :body
