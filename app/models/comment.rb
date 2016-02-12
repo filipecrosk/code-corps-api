@@ -48,6 +48,8 @@ class Comment < ActiveRecord::Base
     end
   end
 
+  scope :active, -> { where("aasm_state=? OR aasm_state=?", "published", "edited") }
+
   def update(publish)
     success = save
     success = publish_changes if publish

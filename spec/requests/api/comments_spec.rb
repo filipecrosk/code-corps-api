@@ -23,7 +23,8 @@ describe "Comments API" do
     context "when unauthenticated" do
       before do
         @post = create(:post, id: 2)
-        create_list(:comment, 3, post: @post)
+        create_list(:comment, 3, :published, post: @post)
+        create_list(:comment, 2, :draft, post: @post)
 
         get "#{host}/posts/#{@post.id}/comments"
       end
@@ -32,8 +33,8 @@ describe "Comments API" do
         expect(last_response.status).to eq 200
       end
 
-      it "responds with the comments, serialized with CommentSerializer" do
-        collection = @post.comments
+      it "responds with active comments, serialized with CommentSerializer" do
+        collection = @post.comments.active
         expect(json).to(
           serialize_collection(collection).
           with(CommentSerializer)
