@@ -14,13 +14,14 @@ describe "Posts API" do
       before do
         @project = create(:project, organization: create(:organization))
         create_list(:post, 3, :published, project: @project, post_type: "issue")
-        create_list(:post, 10, :published, project: @project, post_type: "task")
+        create_list(:post, 7, :published, project: @project, post_type: "task")
+        create_list(:post, 3, :edited, project: @project, post_type: "idea")
       end
 
-      it "returns only published posts" do
-        create_list(:post, 5, project: @project)
+      it "returns active posts (published and edited)" do
+        create_list(:post, 5, :draft, project: @project)
         get "#{host}/projects/#{@project.id}/posts"
-        collection = Post.published.page(1).per(10)
+        collection = Post.active.page(1).per(10)
         expect(json).to(
           serialize_collection(collection).
             with(PostSerializerWithoutIncludes).

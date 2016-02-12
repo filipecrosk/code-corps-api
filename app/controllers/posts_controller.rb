@@ -114,11 +114,11 @@ class PostsController < ApplicationController
 
     def find_posts!
       project = find_project!
-      Post.published.where(filter_params.merge(project: project))
+      Post.active.where(filter_params.merge(project: project))
         .page(page_number).per(page_size)
     end
 
     def post_count
-      Post.published.where(filter_params.merge(project_id: project_id)).count
+      Post.active.where(filter_params.merge(project_id: project_id)).count
     end
 end

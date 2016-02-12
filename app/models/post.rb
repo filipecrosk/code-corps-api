@@ -79,7 +79,8 @@ class Post < ActiveRecord::Base
 
   default_scope  { order(number: :desc) }
 
-  scope :active, -> { published.merge edited }
+
+  scope :active, -> { where("aasm_state=? OR aasm_state=?", "published", "edited") }
 
   def likes_count
     self.post_likes_count
