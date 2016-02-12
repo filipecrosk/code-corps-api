@@ -60,7 +60,7 @@ class CommentsController < ApplicationController
 
   private
     def publish?
-      record_attributes.fetch(:publish, false)
+      true unless record_attributes.fetch(:preview, false)
     end
 
     def create_params

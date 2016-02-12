@@ -86,6 +86,10 @@ describe "Comments API" do
       end
 
       context "when requesting a preview" do
+        before do
+          params[:data][:attributes][:preview] = true
+        end
+
         it "creates a draft" do
           make_request_with_sidekiq_inline params
 
@@ -121,7 +125,6 @@ describe "Comments API" do
 
       context "when requesting an actual save" do
         it "creates a published comment" do
-          params[:data][:attributes][:publish] = true
           make_request_with_sidekiq_inline params
 
           comment = Comment.last
@@ -230,6 +233,10 @@ describe "Comments API" do
         end
 
         context "when requesting a preview" do
+          before do
+            params[:data][:attributes][:preview] = true
+          end
+
           it "updates the draft" do
             make_request_with_sidekiq_inline params
 
@@ -299,7 +306,7 @@ describe "Comments API" do
             {
               data: {
                 attributes: {
-                  title: "", markdown_preview: ""
+                  markdown_preview: nil
                 }
               }
             }
@@ -317,6 +324,10 @@ describe "Comments API" do
         let(:comment) { create :comment, :published, post: post, user: user }
 
         context "when requesting a preview" do
+          before do
+            params[:data][:attributes][:preview] = true
+          end
+
           it "updates the published comment" do
             make_request_with_sidekiq_inline params
 

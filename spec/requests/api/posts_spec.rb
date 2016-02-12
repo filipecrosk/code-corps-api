@@ -198,6 +198,7 @@ describe "Posts API" do
 
       context "when requesting a preview" do
         it "creates a draft" do
+          params[:data][:attributes][:preview] = true
           make_request_with_sidekiq_inline params
 
           post = Post.last
@@ -234,7 +235,6 @@ describe "Posts API" do
 
       context "when requesting an actual save" do
         it "creates a published post" do
-          params[:data][:attributes][:publish] = true
           make_request_with_sidekiq_inline params
 
           # response is correct
@@ -355,6 +355,10 @@ describe "Posts API" do
         end
 
         context "when requesting a preview" do
+          before do
+            params[:data][:attributes][:preview] = true
+          end
+
           it "updates the draft" do
             make_request_with_sidekiq_inline params
 
@@ -390,7 +394,6 @@ describe "Posts API" do
 
         context "when requesting an actual save" do
           it "updates and publishes post" do
-            params[:data][:attributes][:publish] = true
             make_request_with_sidekiq_inline params
 
             # response is correct
@@ -449,6 +452,10 @@ describe "Posts API" do
         let(:post) { create :post, :published, project: project, user: user, post_type: :issue }
 
         context "when requesting a preview" do
+          before do
+            params[:data][:attributes][:preview] = true
+          end
+
           it "updates the published post" do
             make_request_with_sidekiq_inline params
 
