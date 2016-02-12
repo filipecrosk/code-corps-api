@@ -30,8 +30,6 @@ class Comment < ActiveRecord::Base
   validates_presence_of :user
   validates_presence_of :post
 
-  before_validation :render_markdown_to_body
-
   after_save :generate_mentions # Still safe because it runs inside transaction
 
   aasm do
@@ -50,10 +48,10 @@ class Comment < ActiveRecord::Base
 
   scope :active, -> { where("aasm_state=? OR aasm_state=?", "published", "edited") }
 
-  def update(publish)
-    success = save
-    success = publish_changes if publish
-    success
+  def update(publish=false)
+    render_markdown_to_body
+    publish_changes if publish
+    save
   end
 
   def state
@@ -80,14 +78,12 @@ class Comment < ActiveRecord::Base
         self.body_preview = html[:output].to_s
       end
     end
-    def publish_changes
-      self.assign_attributes markdown: markdown_preview, body: body_preview
 
-      if aasm_state_was == "draft"
-        publish!
-      elsif aasm_state_was == "published"
-        edit!
-      end
+    def publish_changes
+      assign_attributes markdown: markdown_preview, body: body_preview
+
+      edit if published?
+      publish if draft?
     end
 
     def pipeline

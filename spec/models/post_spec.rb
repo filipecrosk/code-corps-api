@@ -151,16 +151,6 @@ describe Post, type: :model do
     end
   end
 
-  describe "before_validation" do
-    it "converts markdown_preview to html for body_preview" do
-      post = create(:post, markdown_preview: "# Hello World\n\nHello, world.")
-      post.save
-
-      post.reload
-      expect(post.body_preview).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
-    end
-  end
-
   describe "sequencing" do
     context "when a draft" do
       it "does not number the post" do
@@ -206,10 +196,16 @@ describe Post, type: :model do
   end
 
   describe "#update" do
+    it "renders markdown_preview to body_preview" do
+      post = create(:post, markdown_preview: "# Hello World\n\nHello, world.")
+      post.update
+      expect(post.body_preview).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
+    end
+
     context "when previewing" do
       it "should just save a draft post" do
         post = create(:post, :draft)
-        post.update(false)
+        expect(post.update(false)).to be true
 
         expect(post.draft?).to be true
         expect(post.markdown_preview).not_to be_nil
@@ -220,7 +216,7 @@ describe Post, type: :model do
 
       it "should just save a published post" do
         post = create(:post, :published)
-        post.update(false)
+        expect(post.update(false)).to be true
 
         expect(post.published?).to be true
         expect(post.markdown_preview).not_to be_nil
@@ -231,7 +227,7 @@ describe Post, type: :model do
 
       it "should just save an edited post" do
         post = create(:post, :edited)
-        post.update(false)
+        expect(post.update(false)).to be true
 
         expect(post.edited?).to be true
         expect(post.markdown_preview).not_to be_nil
@@ -244,7 +240,7 @@ describe Post, type: :model do
     context "when publishing" do
       it "publishes a draft post" do
         post = create(:post, :draft)
-        post.update(true)
+        expect(post.update(true)).to be true
 
         expect(post.published?).to be true
         expect(post.markdown_preview).not_to be_nil
@@ -255,7 +251,7 @@ describe Post, type: :model do
 
       it "just saves a published post, sets it to edited state" do
         post = create(:post, :published)
-        post.update(true)
+        expect(post.update(true)).to be true
 
         expect(post.edited?).to be true
         expect(post.markdown_preview).not_to be_nil
@@ -266,7 +262,7 @@ describe Post, type: :model do
 
       it "just saves an edited post" do
         post = create(:post, :edited)
-        post.update(true)
+        expect(post.update(true)).to be true
 
         expect(post.edited?).to be true
         expect(post.markdown_preview).not_to be_nil
@@ -297,17 +293,13 @@ describe Post, type: :model do
   end
 
   describe "post user mentions" do
-    context "when saving a post" do
+    context "when updating a post" do
       it "creates mentions only for existing users" do
         real_user = create(:user, username: "joshsmith")
 
-        post = Post.create(
-          project: create(:project),
-          user: create(:user),
-          markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist",
-          title: "Test"
-        )
+        post = create(:post, markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist")
 
+        post.update
         post.reload
         mentions = post.post_user_mentions
 
@@ -319,13 +311,8 @@ describe Post, type: :model do
         it "creates mentions and not <em> tags" do
           underscored_user = create(:user, username: "a_real_username")
 
-          post = Post.create(
-            project: create(:project),
-            user: create(:user),
-            markdown_preview: "Hello @a_real_username and @not_a_real_username",
-            title: "Test"
-          )
-
+          post = create(:post, markdown_preview: "Hello @a_real_username and @not_a_real_username")
+          post.update
           post.reload
           mentions = post.post_user_mentions
 

@@ -238,10 +238,10 @@ describe "Posts API" do
         it "creates a published post" do
           make_request_with_sidekiq_inline params
 
-          # response is correct
-          expect(json).to serialize_object(Post.last).with(PostSerializer)
-
           post = Post.last
+
+          # response is correct
+          expect(json).to serialize_object(post).with(PostSerializer)
 
           # state is proper
           expect(post.published?).to be true
@@ -274,7 +274,7 @@ describe "Posts API" do
           {
             data: {
               attributes: {
-                title: "", markdown_preview: ""
+                title: nil, markdown_preview: nil
               },
               relationships: {
                 project: { data: { id: project.id, type: "projects" } }

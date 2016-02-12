@@ -17,6 +17,8 @@ FactoryGirl.define do
   factory :comment do
     sequence(:markdown) { |n| "Comment #{n}" }
     sequence(:markdown_preview) { |n| "Comment #{n}" }
+    sequence(:body) { |n| "<p>Comment #{n}</p>" }
+    sequence(:body_preview) { |n| "<p>Comment #{n}</p>" }
 
     association :post
     association :user

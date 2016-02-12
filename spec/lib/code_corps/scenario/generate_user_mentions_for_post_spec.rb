@@ -14,6 +14,7 @@ module CodeCorps
 
         it "creates user mentions" do
           post = create(:post, markdown_preview: "Mentioning @joshsmith")
+          post.update
 
           GenerateUserMentionsForPost.new(post).call
 

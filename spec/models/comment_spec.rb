@@ -39,16 +39,6 @@ describe Comment, :type => :model do
     it { should validate_presence_of(:markdown) }
   end
 
-  describe "before_validation" do
-    it "converts markdown_preview to html to body_preview" do
-      comment = create(:comment, markdown_preview: "# Hello World\n\nHello, world.")
-      comment.save
-
-      comment.reload
-      expect(comment.body_preview).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
-    end
-  end
-
   describe "state machine" do
     let(:post) { Post.new }
 
@@ -88,10 +78,16 @@ describe Comment, :type => :model do
   end
 
   describe "#update" do
+    it "renders markdown_preview to body_preview" do
+      comment = create(:comment, markdown_preview: "# Hello World\n\nHello, world.")
+      comment.update
+      expect(comment.body_preview).to eq "<h1>Hello World</h1>\n\n<p>Hello, world.</p>"
+    end
+
     context "when previewing" do
       it "should just save a draft comment" do
         comment = create(:comment, :draft)
-        comment.update(false)
+        expect(comment.update(false)).to be true
 
         expect(comment.draft?).to be true
         expect(comment.markdown_preview).not_to be_nil
@@ -102,7 +98,7 @@ describe Comment, :type => :model do
 
       it "should just save a published comment" do
         comment = create(:comment, :published)
-        comment.update(false)
+        expect(comment.update(false)).to be true
 
         expect(comment.published?).to be true
         expect(comment.markdown_preview).not_to be_nil
@@ -113,7 +109,7 @@ describe Comment, :type => :model do
 
       it "should just save an edited comment" do
         comment = create(:comment, :edited)
-        comment.update(false)
+        expect(comment.update(false)).to be true
 
         expect(comment.edited?).to be true
         expect(comment.markdown_preview).not_to be_nil
@@ -126,7 +122,7 @@ describe Comment, :type => :model do
     context "when publishing" do
       it "publishes a draft comment" do
         comment = create(:comment, :draft)
-        comment.update(true)
+        expect(comment.update(true)).to be true
 
         expect(comment.published?).to be true
         expect(comment.markdown_preview).not_to be_nil
@@ -137,7 +133,7 @@ describe Comment, :type => :model do
 
       it "just saves a published comment, sets it to edited state" do
         comment = create(:comment, :published)
-        comment.update(true)
+        expect(comment.update(true)).to be true
 
         expect(comment.edited?).to be true
         expect(comment.markdown_preview).not_to be_nil
@@ -148,7 +144,7 @@ describe Comment, :type => :model do
 
       it "just saves an edited comment" do
         comment = create(:comment, :edited)
-        comment.update(true)
+        expect(comment.update(true)).to be true
 
         expect(comment.edited?).to be true
         expect(comment.markdown_preview).not_to be_nil
@@ -171,16 +167,13 @@ describe Comment, :type => :model do
   end
 
   describe "user mentions" do
-    context "when saving a comment" do
+    context "when updating a comment" do
       it "creates mentions only for existing users" do
         real_user = create(:user, username: "joshsmith")
 
-        comment = Comment.create(
-          post: create(:post),
-          user: create(:user),
-          markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist"
-        )
+        comment = create(:comment,markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist")
 
+        comment.update
         comment.reload
         mentions = comment.comment_user_mentions
 
@@ -192,12 +185,9 @@ describe Comment, :type => :model do
         it "creates mentions and not <em> tags" do
           underscored_user = create(:user, username: "a_real_username")
 
-          comment = Comment.create(
-            post: create(:post),
-            user: create(:user),
-            markdown_preview: "Hello @a_real_username and @not_a_real_username"
-          )
+          comment = create(:comment, markdown_preview: "Hello @a_real_username and @not_a_real_username")
 
+          comment.update
           comment.reload
           mentions = comment.comment_user_mentions
 

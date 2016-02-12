@@ -47,8 +47,6 @@ class Post < ActiveRecord::Base
 
   validates_uniqueness_of :number, scope: :project_id, allow_nil: true
 
-  before_validation :render_markdown_to_body
-
   after_save :generate_mentions # Still safe because it runs inside transaction
 
   enum status: {
@@ -86,10 +84,10 @@ class Post < ActiveRecord::Base
     self.post_likes_count
   end
 
-  def update(publish)
-    success = save
-    success = publish_changes if publish
-    success
+  def update(publish=false)
+    render_markdown_to_body
+    publish_changes if publish
+    save
   end
 
   def state
@@ -126,12 +124,9 @@ class Post < ActiveRecord::Base
     end
 
     def publish_changes
-      self.assign_attributes markdown: markdown_preview, body: body_preview
+      assign_attributes markdown: markdown_preview, body: body_preview
 
-      if aasm_state_was == "draft"
-        publish!
-      elsif aasm_state_was == "published"
-        edit!
-      end
+      edit if published?
+      publish if draft?
     end
 end
