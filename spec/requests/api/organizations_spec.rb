@@ -122,19 +122,19 @@ describe "Organizations API" do
     end
   end
 
-  context 'PATCH /organizations/:id' do
+  context "PATCH /organizations/:id" do
 
      let(:organization) { create(:organization) }
 
-    context 'when unauthenticated' do
-      it 'should return a 401 with a proper error' do
+    context "when unauthenticated" do
+      it "should return a 401 with a proper error" do
         patch "#{host}/organizations/#{organization.id}", { data: { type: "organization" } }
         expect(last_response.status).to eq 401
         expect(json).to be_a_valid_json_api_error.with_id "NOT_AUTHORIZED"
       end
     end
 
-    context 'when authenticated' do
+    context "when authenticated" do
       before do
         @user = create(:user, email: "test_user@mail.com", password: "password")
         @organization = create(:organization)
@@ -153,8 +153,8 @@ describe "Organizations API" do
         expect(json).to be_a_valid_json_api_error.with_id "RECORD_NOT_FOUND"
       end
 
-      context 'when updating the name' do
-        it 'updates a organization name' do
+      context "when updating the name" do
+        it "updates a organization name" do
           authenticated_patch "/organizations/#{@organization.id}", {
             data: {
               attributes: { name: "New Name" },
@@ -166,7 +166,7 @@ describe "Organizations API" do
         end
       end
 
-      it 'returns an error when with a nil name' do
+      it "returns an error when with a nil name" do
         authenticated_patch "/organizations/#{@organization.id}", {
           data: {
             attributes: {
