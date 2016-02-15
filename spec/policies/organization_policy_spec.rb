@@ -1,9 +1,8 @@
-require 'rails_helper'
+require "rails_helper"
 
 describe OrganizationPolicy do
 
   subject { described_class }
-
 
   before do
     @organization = create(:organization)
@@ -43,7 +42,6 @@ describe OrganizationPolicy do
   end
 
   permissions :show? do
-
     context "as a logged out user" do
       it "can view all organizations" do
         expect(subject).to permit(nil, @organization)
@@ -88,7 +86,6 @@ describe OrganizationPolicy do
   end
 
   permissions :create?, :update? do
-
     context "as a logged out user" do
       it "is not permitted to create/update organizations" do
         expect(subject).to_not permit(nil, create(:project))
