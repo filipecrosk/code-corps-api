@@ -51,6 +51,10 @@ describe OrganizationSerializer, :type => :serializer do
         expect(subject["slug"]).to eql resource.slug
       end
 
+      it "has a 'description'" do
+        expect(subject["description"]).to eql resource.description
+      end
+
       it "has 'icon url's" do
         expect(subject["icon_thumb_url"]).to eql resource.icon(:thumb)
         expect(subject["icon_large_url"]).to eql resource.icon(:large)
