@@ -48,7 +48,7 @@ class Comment < ActiveRecord::Base
 
   scope :active, -> { where("aasm_state=? OR aasm_state=?", "published", "edited") }
 
-  def update(publish=false)
+  def update(publish = false)
     render_markdown_to_body
     publish_changes if publish
     save
