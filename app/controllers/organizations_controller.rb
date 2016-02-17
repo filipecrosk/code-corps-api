@@ -2,11 +2,16 @@
 #
 # Table name: organizations
 #
-#  id         :integer          not null, primary key
-#  name       :string           not null
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
-#  slug       :string           not null
+#  id                :integer          not null, primary key
+#  name              :string           not null
+#  created_at        :datetime         not null
+#  updated_at        :datetime         not null
+#  slug              :string           not null
+#  icon_file_name    :string
+#  icon_content_type :string
+#  icon_file_size    :integer
+#  icon_updated_at   :datetime
+#  base64_icon_data  :text
 #
 
 class OrganizationsController < ApplicationController
@@ -57,5 +62,10 @@ class OrganizationsController < ApplicationController
 
     def update_params
       record_attributes.permit(:name, :description, :base64_icon_data)
+    end
+
+    def update_params
+      # For now, slugs should not be updated until we've thought through repercussions more
+      record_attributes.permit(:name, :base64_icon_data)
     end
 end
