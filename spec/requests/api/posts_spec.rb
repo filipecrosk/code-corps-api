@@ -189,12 +189,12 @@ describe "Posts API" do
         ActionMailer::Base.deliveries.clear
       end
 
-      def make_request params
-         authenticated_post "/posts", params, token
+      def make_request(params)
+        authenticated_post "/posts", params, token
       end
 
-      def make_request_with_sidekiq_inline params
-        Sidekiq::Testing::inline! { make_request params }
+      def make_request_with_sidekiq_inline(params)
+        Sidekiq::Testing.inline! { make_request params }
       end
 
       context "when requesting a preview" do
@@ -314,7 +314,7 @@ describe "Posts API" do
       end
 
       def make_request_with_sidekiq_inline params
-        Sidekiq::Testing::inline! { make_request params }
+        Sidekiq::Testing.inline! { make_request params }
       end
 
       let(:params) do
@@ -349,7 +349,7 @@ describe "Posts API" do
       end
 
       context "when post is a draft" do
-        let(:post) { create :post, :draft, project: project, user: user, post_type: 'issue' }
+        let(:post) { create :post, :draft, project: project, user: user, post_type: "issue" }
 
         before do
           ActionMailer::Base.deliveries.clear

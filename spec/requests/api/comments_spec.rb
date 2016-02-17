@@ -60,12 +60,12 @@ describe "Comments API" do
       let(:mentioned_1) { create(:user) }
       let(:mentioned_2) { create(:user) }
 
-      def make_request params
+      def make_request(params)
         authenticated_post "/comments", params, token
       end
 
-      def make_request_with_sidekiq_inline params
-        Sidekiq::Testing::inline! { make_request params }
+      def make_request_with_sidekiq_inline(params)
+        Sidekiq::Testing.inline! { make_request params }
       end
 
       let(:params) do
@@ -196,12 +196,12 @@ describe "Comments API" do
       let(:mentioned_1) { create(:user) }
       let(:mentioned_2) { create(:user) }
 
-      def make_request params
+      def make_request(params)
         authenticated_patch "/comments/#{comment.id}", params, token
       end
 
-      def make_request_with_sidekiq_inline params
-        Sidekiq::Testing::inline! { make_request params }
+      def make_request_with_sidekiq_inline(params)
+        Sidekiq::Testing.inline! { make_request params }
       end
 
       let(:params) do
