@@ -77,14 +77,13 @@ class Post < ActiveRecord::Base
 
   default_scope  { order(number: :desc) }
 
-
   scope :active, -> { where("aasm_state=? OR aasm_state=?", "published", "edited") }
 
   def likes_count
     self.post_likes_count
   end
 
-  def update(publish=false)
+  def update(publish = false)
     render_markdown_to_body
     publish_changes if publish
     save

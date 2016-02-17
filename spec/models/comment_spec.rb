@@ -171,7 +171,7 @@ describe Comment, :type => :model do
       it "creates mentions only for existing users" do
         real_user = create(:user, username: "joshsmith")
 
-        comment = create(:comment,markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist")
+        comment = create(:comment, markdown_preview: "Hello @joshsmith and @someone_who_doesnt_exist")
 
         comment.update
         comment.reload
