@@ -130,7 +130,7 @@ ActiveRecord::Schema.define(version: 20160215223422) do
     t.integer  "icon_file_size"
     t.datetime "icon_updated_at"
     t.text     "base64_icon_data"
-    t.string   "description"
+    t.text     "description"
   end
 
   add_index "organizations", ["slug"], name: "index_organizations_on_slug", unique: true, using: :btree
